@@ -25,31 +25,31 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "category")
 public class Category {
-	
+
 	@Id
 	@Column(name = "category_id")
 	private String categoryId;
-	
+
 	@Column(name = "category_name", nullable = false, unique = true)
 	private String categoryName;
-	
+
 	@OneToMany(mappedBy = "category", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	@JsonIgnore
 	private List<SubCategory> subCategories;
-	
+
 	@Column(name = "created_at", nullable = false)
 	private LocalDateTime createdAt;
-	
+
 	@Column(name = "updated_at", nullable = false)
 	private LocalDateTime updatedAt;
-	
+
 	@PrePersist
 	public void prePersist() {
 		this.createdAt = LocalDateTime.now();
 		this.updatedAt = LocalDateTime.now();
 		this.categoryId = UUID.randomUUID().toString();
 	}
-	
+
 	@PreUpdate
 	public void preUpdate() {
 		this.updatedAt = LocalDateTime.now();

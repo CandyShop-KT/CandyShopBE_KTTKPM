@@ -31,14 +31,14 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 	private final AuthService authService;
 
 	public AuthController(AuthService authService) {
 		this.authService = authService;
 	}
-	
+
 	@PostMapping("/login")
 	public ResponseEntity<?> login(@Valid @RequestBody LoginRequestDTO loginRequestDTO, BindingResult bindingResult)
 			throws Exception, AuthenticationException {
@@ -47,7 +47,8 @@ public class AuthController {
 			bindingResult.getFieldErrors().stream().forEach(result -> {
 				errors.put(result.getField(), result.getDefaultMessage());
 			});
-			ApiResponseErrorDTO error = new ApiResponseErrorDTO("Login Failed!", HttpStatus.BAD_REQUEST.value(), errors);
+			ApiResponseErrorDTO error = new ApiResponseErrorDTO("Login Failed!", HttpStatus.BAD_REQUEST.value(),
+					errors);
 			return ResponseEntity.badRequest().body(error);
 		}
 		LoginResponseDTO loginResponseDTO = authService.login(loginRequestDTO);
@@ -55,14 +56,16 @@ public class AuthController {
 	}
 
 	@PostMapping("/register")
-	public ResponseEntity<?> register(@Valid @RequestBody RegisterRequestDTO registerRequestDTO, BindingResult bindingResult)
+	public ResponseEntity<?> register(@Valid @RequestBody RegisterRequestDTO registerRequestDTO,
+			BindingResult bindingResult)
 			throws Exception, ResourceConflictException {
 		if (bindingResult.hasErrors()) {
 			Map<String, Object> errors = new LinkedHashMap<String, Object>();
 			bindingResult.getFieldErrors().stream().forEach(result -> {
 				errors.put(result.getField(), result.getDefaultMessage());
 			});
-			ApiResponseErrorDTO error = new ApiResponseErrorDTO("Register Failed!", HttpStatus.BAD_REQUEST.value(), errors);
+			ApiResponseErrorDTO error = new ApiResponseErrorDTO("Register Failed!", HttpStatus.BAD_REQUEST.value(),
+					errors);
 			return ResponseEntity.badRequest().body(error);
 		}
 		User user = authService.register(registerRequestDTO);
@@ -71,7 +74,8 @@ public class AuthController {
 
 	@PreAuthorize("hasAnyRole('ADMIN', 'USER')")
 	@PostMapping("/otp")
-	public ResponseEntity<?> sendOTP(@Valid @RequestBody SendOtpRequest email, BindingResult bindingResult) throws Exception {
+	public ResponseEntity<?> sendOTP(@Valid @RequestBody SendOtpRequest email, BindingResult bindingResult)
+			throws Exception {
 		if (bindingResult.hasErrors()) {
 			Map<String, Object> errors = new LinkedHashMap<String, Object>();
 			bindingResult.getFieldErrors().stream().forEach(result -> {

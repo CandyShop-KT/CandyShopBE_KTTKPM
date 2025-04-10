@@ -9,11 +9,11 @@ import com.example.demo.exception.AuthenticationException;
 import com.example.demo.model.User;
 
 public interface AuthService {
-	
+
 	public LoginResponseDTO login(LoginRequestDTO loginRequestDTO) throws Exception, AuthenticationException;
 
 	public User register(RegisterRequestDTO registerRequestDTO) throws Exception, ResourceConflictException;
-	
+
 	public void sendOTP(SendOtpRequest email) throws Exception;
-	
+
 }
