@@ -54,13 +54,6 @@ public class UserController {
 		this.userService = userService;
 		this.orderService = orderService;
 	}
-	@GetMapping
-    @PreAuthorize("hasRole('ADMIN')") // Chỉ cho phép người dùng có vai trò ADMIN
-    public ResponseEntity<?> getAllUsers() {
-        List<User> users = userService.getAllUsers();
-		ApiResponseDTO<List<User>> response = new ApiResponseDTO<>("Lay user thanh cong", HttpStatus.OK.value(), users);
-        return ResponseEntity.ok(response);
-    }
 	@PreAuthorize("hasAnyRole('ADMIN', 'USER')")
 	@GetMapping("/{userId}/addresses/{addressId}")
 	public ResponseEntity<?> getAddress(@PathVariable String userId, @PathVariable String addressId) throws Exception {
@@ -230,5 +223,13 @@ public class UserController {
 		ApiResponseDTO<User> response = new ApiResponseDTO<>("User verified successfully", HttpStatus.OK.value(), user);
 		return ResponseEntity.ok(response);
 	}
+	
+	@GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getAllUsers() {
+        List<User> users = userService.getAllUsers();
+		ApiResponseDTO<List<User>> response = new ApiResponseDTO<>("Lấy user thành công", HttpStatus.OK.value(), users);
+        return ResponseEntity.ok(response);
+    }
 
 }
