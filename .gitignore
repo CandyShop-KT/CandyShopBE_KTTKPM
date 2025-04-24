@@ -38,3 +38,6 @@ application.properties
 ### LOG ###
 LOG_FILE_IS_UNDEFINED
 logs/
+
+bin/
+*.class
