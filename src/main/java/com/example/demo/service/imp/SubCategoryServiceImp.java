@@ -1,6 +1,7 @@
 package com.example.demo.service.imp;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,12 +41,28 @@ public class SubCategoryServiceImp implements SubCategoryService {
 	@Override
 	@Transactional
 	public SubCategory updateSubCategory(String subCategoryId, SubCategoryRequestDTO subCategoryRequestDTO) {
-		SubCategory subCategory = subCategoryRepository.findById(subCategoryId)
+		SubCategory existingSubCategory = subCategoryRepository.findById(subCategoryId)
 				.orElseThrow(() -> new ResourceNotFoundException("SubCategory not found"));
-		if (subCategoryRepository.existsBySubCategoryNameIgnoreCase(subCategoryRequestDTO.getSubCategoryName()))
-			throw new RuntimeException("Sub Category name already exists");
-		subCategory.setSubCategoryName(subCategoryRequestDTO.getSubCategoryName());
-		return subCategoryRepository.save(subCategory);
+
+		// Kiểm tra nếu có thay đổi tên
+		if (!Objects.equals(existingSubCategory.getSubCategoryName().toLowerCase(),
+				subCategoryRequestDTO.getSubCategoryName().toLowerCase())) {
+			// Chỉ kiểm tra trùng tên khi có thay đổi tên
+			if (subCategoryRepository.existsBySubCategoryNameIgnoreCase(subCategoryRequestDTO.getSubCategoryName())) {
+				throw new RuntimeException("Sub Category name already exists");
+			}
+			existingSubCategory.setSubCategoryName(subCategoryRequestDTO.getSubCategoryName());
+		}
+
+		// Kiểm tra nếu có thay đổi danh mục cha
+		if (!Objects.equals(existingSubCategory.getCategory().getCategoryId(),
+				subCategoryRequestDTO.getCategoryId())) {
+			Category newCategory = categoryRepository.findById(subCategoryRequestDTO.getCategoryId())
+					.orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+			existingSubCategory.setCategory(newCategory);
+		}
+
+		return subCategoryRepository.save(existingSubCategory);
 	}
 
 	@Override
