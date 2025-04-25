@@ -98,7 +98,7 @@ public class User {
         this.updatedAt = LocalDateTime.now();
         this.userId = UUID.randomUUID().toString();
         this.role = Role.USER;
-        this.status = UserStatus.INACTIVE;
+        this.status = UserStatus.ACTIVE;
     }
 	
 	@PreUpdate
