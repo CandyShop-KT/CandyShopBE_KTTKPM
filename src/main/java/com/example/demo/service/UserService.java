@@ -9,6 +9,7 @@ import com.example.demo.dto.AddressRequestDTO;
 import com.example.demo.dto.AddressRequestUpdateDTO;
 import com.example.demo.dto.ChangeEmailRequestDTO;
 import com.example.demo.dto.ChangePasswordRequestDTO;
+import com.example.demo.dto.CreateUserRequestDTO;
 import com.example.demo.dto.UserProfileRequestDTO;
 import com.example.demo.dto.VerifyUserRequest;
 import com.example.demo.exception.ResourceNotFoundException;
@@ -44,4 +45,6 @@ public interface UserService {
 	public List<User> getAllUsers();
 	
 	public User updateUserRole(String userId, Role newRole);
+	
+	public User createUserByAdmin(CreateUserRequestDTO dto, MultipartFile multipartFile) throws Exception;
 }

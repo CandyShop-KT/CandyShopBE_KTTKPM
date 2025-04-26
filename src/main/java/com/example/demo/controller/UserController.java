@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -30,6 +31,7 @@ import com.example.demo.dto.ApiResponseErrorDTO;
 import com.example.demo.dto.ApiResponseNoDataDTO;
 import com.example.demo.dto.ChangeEmailRequestDTO;
 import com.example.demo.dto.ChangePasswordRequestDTO;
+import com.example.demo.dto.CreateUserRequestDTO;
 import com.example.demo.dto.OrderPageResponseDTO;
 import com.example.demo.dto.PagedResponseDTO;
 import com.example.demo.dto.UserProfileRequestDTO;
@@ -37,6 +39,7 @@ import com.example.demo.dto.VerifyUserRequest;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.model.Address;
 import com.example.demo.model.User;
+import com.example.demo.model.enums.Gender;
 import com.example.demo.model.enums.Role;
 import com.example.demo.service.OrderService;
 import com.example.demo.service.UserService;
@@ -240,5 +243,25 @@ public class UserController {
 		ApiResponseDTO<User> response= new ApiResponseDTO<>("Cập nhật vai trò thành công",HttpStatus.OK.value(),updatedUser);
 		return ResponseEntity.ok(response);
 	}
+	
+	
+	@PreAuthorize("hasRole('ADMIN')")
+	@PostMapping("/addUserFromAdmin")
+	public ResponseEntity<User> createUserByAdmin(@RequestParam("userName") String userName,
+	                                              @RequestParam("firstName") String firstName,
+	                                              @RequestParam("lastName") String lastName,
+	                                              @RequestParam("phoneNumber") String phoneNumber,
+	                                              @RequestParam("email") String email,
+	                                              @RequestParam("gender") Gender gender,
+	                                              @RequestParam("password") String password,
+	                                              @RequestParam("birthDay") LocalDate birthDay,
+	                                              @RequestParam("role") Role role,
+	                                              @RequestParam(value = "avatar", required = false) MultipartFile multipartFile) throws Exception {
+	    CreateUserRequestDTO dto = new CreateUserRequestDTO(userName, password, firstName, lastName, email, phoneNumber, gender, birthDay, role);
+	    User createdUser = userService.createUserByAdmin(dto, multipartFile);
+	    return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
+	}
+
+
 
 }
