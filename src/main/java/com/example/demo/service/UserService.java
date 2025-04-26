@@ -14,6 +14,7 @@ import com.example.demo.dto.VerifyUserRequest;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.model.Address;
 import com.example.demo.model.User;
+import com.example.demo.model.enums.Role;
 
 public interface UserService {
 	
@@ -41,4 +42,6 @@ public interface UserService {
 	
 	public User verifyUser(String userId, VerifyUserRequest verifyUserRequest) throws Exception;
 	public List<User> getAllUsers();
+	
+	public User updateUserRole(String userId, Role newRole);
 }
