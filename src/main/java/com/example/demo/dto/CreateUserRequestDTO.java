@@ -28,7 +28,7 @@ public class CreateUserRequestDTO {
     private LocalDate birthDay;
     @NotNull(message = "Role is required")
     private Role role;
-    private String avatarUrl;
+//    private String avatarUrl;
 	public CreateUserRequestDTO() {
 		super();
 	}
@@ -39,7 +39,7 @@ public class CreateUserRequestDTO {
 			@Email(message = "Email should be valid") @NotBlank(message = "Email is required") String email,
 			String phoneNumber, @NotNull(message = "Gender is required") Gender gender,
 			@NotNull(message = "Birthday is required") LocalDate birthDay,
-			@NotNull(message = "Role is required") Role role, String avatarUrl) {
+			@NotNull(message = "Role is required") Role role) {
 		super();
 		this.userName = userName;
 		this.password = password;
@@ -50,7 +50,6 @@ public class CreateUserRequestDTO {
 		this.gender = gender;
 		this.birthDay = birthDay;
 		this.role = role;
-		this.avatarUrl = avatarUrl;
 	}
 	public String getUserName() {
 		return userName;
@@ -106,12 +105,6 @@ public class CreateUserRequestDTO {
 	public void setRole(Role role) {
 		this.role = role;
 	}
-	public String getAvatarUrl() {
-		return avatarUrl;
-	}
-	public void setAvatarUrl(String avatarUrl) {
-		this.avatarUrl = avatarUrl;
-	} 
 	
     
     

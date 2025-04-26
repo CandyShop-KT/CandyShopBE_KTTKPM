@@ -46,5 +46,5 @@ public interface UserService {
 	
 	public User updateUserRole(String userId, Role newRole);
 	
-	public User createUserByAdmin(CreateUserRequestDTO dto) throws Exception;
+	public User createUserByAdmin(CreateUserRequestDTO dto, MultipartFile multipartFile) throws Exception;
 }
