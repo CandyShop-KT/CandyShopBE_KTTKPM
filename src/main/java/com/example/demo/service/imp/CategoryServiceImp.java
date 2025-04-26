@@ -13,10 +13,10 @@ import com.example.demo.repository.CategoryRepository;
 import com.example.demo.service.CategoryService;
 
 @Service
-public class CategoryServiceImp implements CategoryService{
-	
+public class CategoryServiceImp implements CategoryService {
+
 	private CategoryRepository categoryRepository;
-	
+
 	public CategoryServiceImp(CategoryRepository categoryRepository) {
 		this.categoryRepository = categoryRepository;
 	}
@@ -49,6 +49,9 @@ public class CategoryServiceImp implements CategoryService{
 	public void deleteCategory(String categoryId) {
 		Category category = categoryRepository.findById(categoryId)
 				.orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+		if (!category.getSubCategories().isEmpty()) {
+			throw new ResourceConflictException("category", "Cannot delete category with existing subcategories");
+		}
 		categoryRepository.delete(category);
 	}
 
@@ -61,6 +64,23 @@ public class CategoryServiceImp implements CategoryService{
 	@Override
 	public List<Category> getAllCategories() {
 		return categoryRepository.findAll();
+	}
+
+	@Override
+	public List<Category> searchCategories(String keyword) {
+		return categoryRepository.searchCategories(keyword);
+	}
+
+	@Override
+	public List<Category> searchCategoriesBySubCategoryName(String keyword) {
+		return categoryRepository.searchCategoriesBySubCategoryName(keyword);
+	}
+
+	@Override
+	public boolean hasSubCategories(String categoryId) {
+		Category category = categoryRepository.findById(categoryId)
+				.orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+		return !category.getSubCategories().isEmpty();
 	}
 
 }

@@ -6,7 +6,7 @@ import com.example.demo.dto.SubCategoryRequestDTO;
 import com.example.demo.model.SubCategory;
 
 public interface SubCategoryService {
-	
+
 	public SubCategory createSubCategory(String categoryId, SubCategoryRequestDTO subCategoryRequestDTO);
 
 	public SubCategory updateSubCategory(String subCategoryId, SubCategoryRequestDTO subCategoryRequestDTO);
@@ -16,5 +16,8 @@ public interface SubCategoryService {
 	public void deleteSubCategory(String subCategoryId);
 
 	public List<SubCategory> getAllSubCategories();
-	
+
+	public List<SubCategory> searchSubCategories(String keyword);
+
+	public List<SubCategory> getSubCategoriesByCategoryId(String categoryId);
 }
