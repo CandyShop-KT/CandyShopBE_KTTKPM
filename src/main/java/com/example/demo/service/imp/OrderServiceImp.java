@@ -198,6 +198,11 @@ public class OrderServiceImp implements OrderService {
 		orderPageResponseDTO.setCreatedAt(order.getCreatedAt());
 		orderPageResponseDTO.setUpdatedAt(order.getUpdatedAt());
 		orderPageResponseDTO.setTotalAmount(order.getTotalAmount());
+		// Lấy thông tin user
+	    if (order.getUser() != null) {
+	        orderPageResponseDTO.setUserId(order.getUser().getUserId());
+	        orderPageResponseDTO.setUsername(order.getUser().getUserName());
+	    }
 		return orderPageResponseDTO;
 	}
 

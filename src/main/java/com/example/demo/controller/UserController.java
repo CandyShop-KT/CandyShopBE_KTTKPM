@@ -37,6 +37,7 @@ import com.example.demo.dto.VerifyUserRequest;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.model.Address;
 import com.example.demo.model.User;
+import com.example.demo.model.enums.Role;
 import com.example.demo.service.OrderService;
 import com.example.demo.service.UserService;
 
@@ -54,13 +55,6 @@ public class UserController {
 		this.userService = userService;
 		this.orderService = orderService;
 	}
-	@GetMapping
-    @PreAuthorize("hasRole('ADMIN')") // Chỉ cho phép người dùng có vai trò ADMIN
-    public ResponseEntity<?> getAllUsers() {
-        List<User> users = userService.getAllUsers();
-		ApiResponseDTO<List<User>> response = new ApiResponseDTO<>("Lay user thanh cong", HttpStatus.OK.value(), users);
-        return ResponseEntity.ok(response);
-    }
 	@PreAuthorize("hasAnyRole('ADMIN', 'USER')")
 	@GetMapping("/{userId}/addresses/{addressId}")
 	public ResponseEntity<?> getAddress(@PathVariable String userId, @PathVariable String addressId) throws Exception {
@@ -228,6 +222,22 @@ public class UserController {
 		}
 		User user = userService.verifyUser(userId, verifyUserRequest);
 		ApiResponseDTO<User> response = new ApiResponseDTO<>("User verified successfully", HttpStatus.OK.value(), user);
+		return ResponseEntity.ok(response);
+	}
+	
+	@GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getAllUsers() {
+        List<User> users = userService.getAllUsers();
+		ApiResponseDTO<List<User>> response = new ApiResponseDTO<>("Lấy user thành công", HttpStatus.OK.value(), users);
+        return ResponseEntity.ok(response);
+    }
+	
+	@PreAuthorize("hasRole('ADMIN')")
+	@PatchMapping("/{userId}/role")
+	public ResponseEntity<?> updateUserRole(@PathVariable String userId, @RequestParam("role") Role role) throws ResourceNotFoundException{
+		User updatedUser= userService.updateUserRole(userId, role);
+		ApiResponseDTO<User> response= new ApiResponseDTO<>("Cập nhật vai trò thành công",HttpStatus.OK.value(),updatedUser);
 		return ResponseEntity.ok(response);
 	}
 
