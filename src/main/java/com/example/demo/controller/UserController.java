@@ -37,6 +37,7 @@ import com.example.demo.dto.VerifyUserRequest;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.model.Address;
 import com.example.demo.model.User;
+import com.example.demo.model.enums.Role;
 import com.example.demo.service.OrderService;
 import com.example.demo.service.UserService;
 
@@ -231,5 +232,13 @@ public class UserController {
 		ApiResponseDTO<List<User>> response = new ApiResponseDTO<>("Lấy user thành công", HttpStatus.OK.value(), users);
         return ResponseEntity.ok(response);
     }
+	
+	@PreAuthorize("hasRole('ADMIN')")
+	@PatchMapping("/{userId}/role")
+	public ResponseEntity<?> updateUserRole(@PathVariable String userId, @RequestParam("role") Role role) throws ResourceNotFoundException{
+		User updatedUser= userService.updateUserRole(userId, role);
+		ApiResponseDTO<User> response= new ApiResponseDTO<>("Cập nhật vai trò thành công",HttpStatus.OK.value(),updatedUser);
+		return ResponseEntity.ok(response);
+	}
 
 }

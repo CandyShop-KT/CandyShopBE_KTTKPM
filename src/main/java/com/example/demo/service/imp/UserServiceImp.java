@@ -25,6 +25,7 @@ import com.example.demo.model.Province;
 import com.example.demo.model.User;
 import com.example.demo.model.Ward;
 import com.example.demo.model.enums.Gender;
+import com.example.demo.model.enums.Role;
 import com.example.demo.model.enums.UserStatus;
 import com.example.demo.repository.AddressRepository;
 import com.example.demo.repository.DistrictRepository;
@@ -259,5 +260,16 @@ public class UserServiceImp implements UserService {
 	@Override
 	public List<User> getAllUsers() {
 		return userRepository.findAll();
+	}
+
+	@Override
+	public User updateUserRole(String userId, Role newRole) {
+		// TODO Auto-generated method stub
+		User user= getUserById(userId); //đảm bảo user tồn tại
+		if(user.getRole()== newRole) {
+			return user;
+		}
+		user.setRole(newRole);
+		return userRepository.save(user);
 	}
 }
