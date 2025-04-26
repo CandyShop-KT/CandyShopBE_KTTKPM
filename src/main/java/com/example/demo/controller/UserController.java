@@ -30,6 +30,7 @@ import com.example.demo.dto.ApiResponseErrorDTO;
 import com.example.demo.dto.ApiResponseNoDataDTO;
 import com.example.demo.dto.ChangeEmailRequestDTO;
 import com.example.demo.dto.ChangePasswordRequestDTO;
+import com.example.demo.dto.CreateUserRequestDTO;
 import com.example.demo.dto.OrderPageResponseDTO;
 import com.example.demo.dto.PagedResponseDTO;
 import com.example.demo.dto.UserProfileRequestDTO;
@@ -240,5 +241,34 @@ public class UserController {
 		ApiResponseDTO<User> response= new ApiResponseDTO<>("Cập nhật vai trò thành công",HttpStatus.OK.value(),updatedUser);
 		return ResponseEntity.ok(response);
 	}
+	
+	
+	@PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/addUserFromAdmin")
+    public ResponseEntity<ApiResponseDTO<User>> createUserByAdmin(
+        @Valid @RequestBody CreateUserRequestDTO createUserRequestDTO,
+        BindingResult bindingResult) {
+        
+        // Kiểm tra lỗi validation
+        if (bindingResult.hasErrors()) {
+            Map<String, String> errors = bindingResult.getFieldErrors().stream()
+                    .collect(Collectors.toMap(FieldError::getField, FieldError::getDefaultMessage));
+            ApiResponseErrorDTO apiResponseErrorDTO = new ApiResponseErrorDTO(
+                    "Validation failed", HttpStatus.BAD_REQUEST.value(), errors);
+            return new ResponseEntity(apiResponseErrorDTO, HttpStatus.BAD_REQUEST);
+        }
+
+        try {
+            User newUser = userService.createUserByAdmin(createUserRequestDTO);
+            ApiResponseDTO<User> response = new ApiResponseDTO<>(
+                    "User created successfully", HttpStatus.CREATED.value(), newUser);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (Exception e) {
+            ApiResponseErrorDTO errorResponse = new ApiResponseErrorDTO(
+                    "Error occurred while creating user", HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage());
+            return new ResponseEntity(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 
 }

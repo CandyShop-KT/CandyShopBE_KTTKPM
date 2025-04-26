@@ -1,8 +1,11 @@
 package com.example.demo.service.imp;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -13,6 +16,7 @@ import com.example.demo.dto.AddressRequestDTO;
 import com.example.demo.dto.AddressRequestUpdateDTO;
 import com.example.demo.dto.ChangeEmailRequestDTO;
 import com.example.demo.dto.ChangePasswordRequestDTO;
+import com.example.demo.dto.CreateUserRequestDTO;
 import com.example.demo.dto.UserProfileRequestDTO;
 import com.example.demo.dto.VerifyUserRequest;
 import com.example.demo.exception.BadRequestException;
@@ -272,4 +276,36 @@ public class UserServiceImp implements UserService {
 		user.setRole(newRole);
 		return userRepository.save(user);
 	}
+
+	@Override
+	public User createUserByAdmin(CreateUserRequestDTO dto) throws Exception {
+		// TODO Auto-generated method stub
+		if (userRepository.existsByUserName(dto.getUserName())) {
+            throw new IllegalArgumentException("Username already exists");
+        }
+
+        if (userRepository.existsByEmail(dto.getEmail())) {
+            throw new IllegalArgumentException("Email already exists");
+        }
+        if (dto.getPhoneNumber() != null && userRepository.existsByPhoneNumber(dto.getPhoneNumber())) {
+            throw new IllegalArgumentException("Phone number already exists");
+        }
+        User user = new User();
+        user.setUserId(UUID.randomUUID().toString());
+        user.setUserName(dto.getUserName());
+        user.setPassword(bycryptPasswordEncoder.encode(dto.getPassword()));
+        user.setFirstName(dto.getFirstName());
+        user.setLastName(dto.getLastName());
+        user.setEmail(dto.getEmail());
+        user.setPhoneNumber(dto.getPhoneNumber());
+        user.setGender(dto.getGender());
+        user.setBirthDay(dto.getBirthDay());
+        user.setRole(dto.getRole());
+        user.setStatus(UserStatus.ACTIVE); // Giả sử trạng thái là ACTIVE
+        user.setAvatarUrl(dto.getAvatarUrl()); // Lưu ảnh đại diện (nếu có)
+        user.setCreatedAt(LocalDateTime.now());
+        user.setUpdatedAt(LocalDateTime.now());
+        return userRepository.save(user); 
+	}
+
 }
