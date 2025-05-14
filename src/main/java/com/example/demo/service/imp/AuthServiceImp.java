@@ -60,8 +60,8 @@ public class AuthServiceImp implements AuthService {
 	public LoginResponseDTO login(LoginRequestDTO loginRequestDTO) throws Exception {
 		try {
 			Authentication authentication = authenticationManager.authenticate(
-					new UsernamePasswordAuthenticationToken(loginRequestDTO.getUserName(), loginRequestDTO.getPassword()));
-			User user = userRepository.findByUserName(loginRequestDTO.getUserName())
+					new UsernamePasswordAuthenticationToken(loginRequestDTO.getUsername(), loginRequestDTO.getPassword()));
+			User user = userRepository.findByUserName(loginRequestDTO.getUsername())
 					.orElseThrow(() -> new AuthenticationException("User not found"));
 			String token = jwtUtil.generateToken(user);
 			return new LoginResponseDTO(token, user);
