@@ -6,7 +6,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -33,7 +36,9 @@ import com.example.demo.service.PublisherService;
 import com.example.demo.service.S3Service;
 import com.example.demo.service.SubCategoryService;
 
+import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 public class ProductServiceImp implements ProductService {
@@ -45,6 +50,7 @@ public class ProductServiceImp implements ProductService {
 	private PriceHistoryRepository priceHistoryRepository;
 	@Value("${cloud.aws.s3.bucket}")
 	private String bucketName;
+	 private static final Logger log = LoggerFactory.getLogger(ProductService.class);
 
 	public ProductServiceImp(ProductRepository productRepository, SubCategoryService subCategoryService,
 			PublisherService publisherService, S3Service s3Service, PriceHistoryRepository priceHistoryRepository) {
@@ -98,14 +104,30 @@ public class ProductServiceImp implements ProductService {
 			throw e;
 		}
 	}
-
+	private int lanthu=0;
 	@Override
+	@Retry(name="productRetry", fallbackMethod="getProductFallback")
 	public ProductResponseDTO getProductResponse(String id) {
-		Product product = productRepository.findById(id)
-				.orElseThrow(() -> new ResourceNotFoundException("Product not found"));
-		return convertProductToProductResponseDTO(product);
+		lanthu++;
+		try {
+			log.info("Lần thử #{}: Lấy sản phẩm với ID:{}",lanthu,id);
+			Product product = productRepository.findById(id)
+					.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm"));
+			return convertProductToProductResponseDTO(product);		
+		} catch (DataAccessException ex) {
+			// TODO: handle exception
+			log.warn("Lần thử #{} thất bại do lỗi kết nối cơ sở dữ liệu:{}",lanthu,ex.getMessage());
+			throw ex;// phải ném lại để Retry tiếp tục hoạt động
+			
+		}
+		
 	}
-
+	// Hàm fallback khi thử nhiều lần nhưng vẫn thất bại
+	public ProductResponseDTO getProductFallback(String id, Throwable t) {
+		log.error("Không thể lấy sản phẩm với ID: {} sau nhiều lần thử.Lý do:{}",id,t.getClass().getSimpleName());
+		throw new RuntimeException("Không thể lấy được thông tin sản phẩm sau nhiều lần thử");
+	}
+	
 	@Override
 	@Transactional
 	public ProductResponseDTO updateProduct(String id, ProductRequestUpdateDTO productRequestUpdateDTO) {
