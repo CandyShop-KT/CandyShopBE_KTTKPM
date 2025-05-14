@@ -35,6 +35,7 @@ services:
       - MYSQL_DATABASE=${DB_NAME}
     volumes:
       - mariadb_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql   # Thêm dòng này
 
   redis:
     image: redis:latest
