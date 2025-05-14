@@ -30,7 +30,9 @@ public class EndPoint {
 				
 				"/api/subcategories/*",
 				
-				"/api/wards/*"
+				"/api/wards/*",
+				"/api/payments/vnpay/return", 
+				"/api/payments/vnpay/ipn"
 		};
 
 }

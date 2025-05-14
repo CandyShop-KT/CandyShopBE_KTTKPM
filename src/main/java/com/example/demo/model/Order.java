@@ -77,6 +77,9 @@ public class Order {
 	 @JsonManagedReference
 	private List<OrderDetail> orderDetails = new ArrayList<>();
 	
+	@OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	private List<Payment> payments = new ArrayList<>();
+	
 	@Column(name = "created_at", nullable = false)
 	private LocalDateTime createdAt;
 	
@@ -87,7 +90,9 @@ public class Order {
 	public void prePersist() {
 		this.createdAt = LocalDateTime.now();
 		this.updatedAt = LocalDateTime.now();
-		this.orderId = UUID.randomUUID().toString();
+		if (this.orderId == null || this.orderId.trim().isEmpty()) {
+			this.orderId = String.valueOf(System.currentTimeMillis());
+		}
 		this.status = OrderStatus.PENDING_CONFIRMATION;
 		this.totalAmount = calculateTotalAmount();
 	}
