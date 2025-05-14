@@ -63,7 +63,7 @@ public class AuthServiceImp implements AuthService {
 					new UsernamePasswordAuthenticationToken(loginRequestDTO.getUsername(), loginRequestDTO.getPassword()));
 			User user = userRepository.findByUserName(loginRequestDTO.getUsername())
 					.orElseThrow(() -> new AuthenticationException("User not found"));
-			String token = jwtUtil.generateToken(user);
+			String token = jwtUtil.generateToken(user.getUserName());
 			return new LoginResponseDTO(
 				user.getUserId(),
 				user.getUserName(),
