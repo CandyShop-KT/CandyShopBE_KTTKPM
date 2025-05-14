@@ -114,7 +114,7 @@ public class ProductServiceImp implements ProductService {
 			Product product = productRepository.findById(id)
 					.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm"));
 			return convertProductToProductResponseDTO(product);		
-		} catch (DataAccessException ex) {
+		} catch (Exception ex) {
 			// TODO: handle exception
 			log.warn("Lần thử #{} thất bại do lỗi kết nối cơ sở dữ liệu:{}",lanthu,ex.getMessage());
 			throw ex;// phải ném lại để Retry tiếp tục hoạt động
