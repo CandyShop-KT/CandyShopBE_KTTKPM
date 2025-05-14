@@ -33,7 +33,7 @@ build/
 .vscode/
 
 ### ENV ###
-application.properties
+
 .env
 ### LOG ###
 LOG_FILE_IS_UNDEFINED
