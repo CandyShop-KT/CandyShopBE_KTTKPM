@@ -64,7 +64,21 @@ public class AuthServiceImp implements AuthService {
 			User user = userRepository.findByUserName(loginRequestDTO.getUsername())
 					.orElseThrow(() -> new AuthenticationException("User not found"));
 			String token = jwtUtil.generateToken(user);
-			return new LoginResponseDTO(token, user);
+			return new LoginResponseDTO(
+				user.getUserId(),
+				user.getUserName(),
+				user.getFirstName(),
+				user.getLastName(),
+				user.getPhoneNumber(),
+				user.getEmail(),
+				user.getGender(),
+				user.getAvatarUrl(),
+				user.getBirthDay(),
+				user.getCreatedAt(),
+				user.getUpdatedAt(),
+				user.getRole(),
+				token
+			);
 		} catch (BadCredentialsException e) {
 			throw new AuthenticationException("Invalid username or password");
 		}
