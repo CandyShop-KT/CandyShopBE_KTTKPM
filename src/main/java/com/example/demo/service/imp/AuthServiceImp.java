@@ -3,6 +3,8 @@ package com.example.demo.service.imp;
 import java.security.SecureRandom;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,81 +26,84 @@ import com.example.demo.model.enums.Gender;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.AuthService;
 import com.example.demo.service.EmailService;
+import com.example.demo.service.RateLimiterService;
 import com.example.demo.service.RedisService;
 import com.example.demo.util.JwtUtil;
 
 @Service
 public class AuthServiceImp implements AuthService {
 
+	private static final Logger logger = LoggerFactory.getLogger(AuthServiceImp.class);
 	private static final String DIGITS = "0123456789";
 	private static final int OTP_LENGTH = 6;
+	private static final int MAX_OTP_REQUESTS = 3; // Số lần gửi OTP tối đa
+	private static final int OTP_REQUEST_WINDOW = 300; // Thời gian cửa sổ (5 phút)
 
 	private AuthenticationManager authenticationManager;
 	private UserRepository userRepository;
 	private BCryptPasswordEncoder bCryptPasswordEncoder;
 	private EmailService emailService;
 	private RedisService redisService;
+	private RateLimiterService rateLimiterService;
 	@Value("${spring.mail.username}")
 	private String myEmail;
 	private JwtUtil jwtUtil;
 
 	public AuthServiceImp(AuthenticationManager authenticationManager, UserRepository userRepository,
 			BCryptPasswordEncoder bCryptPasswordEncoder, EmailService emailService, RedisService redisService,
-			JwtUtil jwtUtil) {
+			RateLimiterService rateLimiterService, JwtUtil jwtUtil) {
 		this.authenticationManager = authenticationManager;
 		this.userRepository = userRepository;
 		this.bCryptPasswordEncoder = bCryptPasswordEncoder;
 		this.emailService = emailService;
 		this.redisService = redisService;
+		this.rateLimiterService = rateLimiterService;
 		this.jwtUtil = jwtUtil;
 	}
 
 	@Override
 	public LoginResponseDTO login(LoginRequestDTO loginRequestDTO) throws Exception {
-	    try {
-	        User user = userRepository.findByUserName(loginRequestDTO.getUsername())
-	                .orElseThrow(() -> new AuthenticationException("Tên đăng nhập không tồn tại"));
-	        
-	        Authentication authentication = authenticationManager.authenticate(
-	        		 new UsernamePasswordAuthenticationToken(
-	                         loginRequestDTO.getUsername(),
-	                         loginRequestDTO.getPassword()
-	                 )
-	        );
-	        if (!authentication.isAuthenticated()) {
-	            throw new AuthenticationException("Xác thực thất bại");
-	        }
-	        // Tạo token và trả về đối tượng LoginResponseDTO
-	        String token = jwtUtil.generateToken(user.getUserName());
-	        return buildLoginResponse(user, token);
+		try {
+			User user = userRepository.findByUserName(loginRequestDTO.getUsername())
+					.orElseThrow(() -> new AuthenticationException("Tên đăng nhập không tồn tại"));
 
-	    } catch (BadCredentialsException e) {
-	        throw new AuthenticationException("Mật khẩu không đúng");
-	    } catch (AuthenticationException e) {
-	        throw e;
-	    } catch (Exception e) {
-	        throw new Exception("Đã xảy ra lỗi trong quá trình đăng nhập", e);
-	    }
+			Authentication authentication = authenticationManager.authenticate(
+					new UsernamePasswordAuthenticationToken(
+							loginRequestDTO.getUsername(),
+							loginRequestDTO.getPassword()));
+			if (!authentication.isAuthenticated()) {
+				throw new AuthenticationException("Xác thực thất bại");
+			}
+			// Tạo token và trả về đối tượng LoginResponseDTO
+			String token = jwtUtil.generateToken(user.getUserName());
+			return buildLoginResponse(user, token);
+
+		} catch (BadCredentialsException e) {
+			throw new AuthenticationException("Mật khẩu không đúng");
+		} catch (AuthenticationException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new Exception("Đã xảy ra lỗi trong quá trình đăng nhập", e);
+		}
 	}
 
 	private LoginResponseDTO buildLoginResponse(User user, String token) {
-	    LoginResponseDTO response = new LoginResponseDTO();
-	    response.setUserId(user.getUserId());
-	    response.setUserName(user.getUserName());
-	    response.setFirstName(user.getFirstName());
-	    response.setLastName(user.getLastName());
-	    response.setPhoneNumber(user.getPhoneNumber());
-	    response.setEmail(user.getEmail());
-	    response.setGender(user.getGender());
-	    response.setAvatarUrl(user.getAvatarUrl());
-	    response.setBirthDay(user.getBirthDay());
-	    response.setCreatedAt(user.getCreatedAt());
-	    response.setUpdatedAt(user.getUpdatedAt());
-	    response.setRole(user.getRole());
-	    response.setToken(token);
-	    return response;
+		LoginResponseDTO response = new LoginResponseDTO();
+		response.setUserId(user.getUserId());
+		response.setUserName(user.getUserName());
+		response.setFirstName(user.getFirstName());
+		response.setLastName(user.getLastName());
+		response.setPhoneNumber(user.getPhoneNumber());
+		response.setEmail(user.getEmail());
+		response.setGender(user.getGender());
+		response.setAvatarUrl(user.getAvatarUrl());
+		response.setBirthDay(user.getBirthDay());
+		response.setCreatedAt(user.getCreatedAt());
+		response.setUpdatedAt(user.getUpdatedAt());
+		response.setRole(user.getRole());
+		response.setToken(token);
+		return response;
 	}
-
 
 	@Transactional
 	@Override
@@ -134,9 +139,22 @@ public class AuthServiceImp implements AuthService {
 
 	@Override
 	public void sendOTP(SendOtpRequest email) throws Exception {
+		String rateLimitKey = "otp_rate_limit:" + email.getEmail();
+
+		// Kiểm tra rate limit
+		if (!rateLimiterService.isAllowed(rateLimitKey, MAX_OTP_REQUESTS, OTP_REQUEST_WINDOW)) {
+			logger.warn("Rate limit exceeded for email: {}", email.getEmail());
+			throw new AuthenticationException(
+					"Quá nhiều yêu cầu gửi OTP. Vui lòng thử lại sau " + (OTP_REQUEST_WINDOW / 60) + " phút.");
+		}
+
 		String otp = generateOTP();
-		redisService.setWithExpireTime(String.format("otp?email=%s", email.getEmail()), otp, 60, TimeUnit.SECONDS);
+		String redisKey = String.format("otp?email=%s", email.getEmail());
+		logger.debug("Storing OTP in Redis with key: {}", redisKey);
+		redisService.setWithExpireTime(redisKey, otp, 60, TimeUnit.SECONDS);
+		logger.debug("OTP stored successfully in Redis");
 		emailService.sendEmailVerifyOTP(myEmail, email.getEmail(), otp);
+		logger.debug("OTP email sent successfully");
 	}
 
 	private String generateOTP() {
