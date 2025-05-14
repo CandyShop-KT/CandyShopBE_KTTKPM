@@ -2,7 +2,7 @@ package com.example.demo.config;
 
 public class EndPoint {
 
-	public static String[] ALLOWED_ORIGINS = { "http://localhost:3000" };
+	public static String[] ALLOWED_ORIGINS = { "http://localhost:3000" ,"https://candy-shop-azure.vercel.app"};
 	public static String[] ALLOWED_METHODS = { "GET", "POST", "PUT", "DELETE", "PATCH" };
 	public static String[] PUBLIC_METHODS_POST = { "/api/auth/login", "/api/auth/register" };
 	public static String[] PUBLIC_METHODS_GET = 
