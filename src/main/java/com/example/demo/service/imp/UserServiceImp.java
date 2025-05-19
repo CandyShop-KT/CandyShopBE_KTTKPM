@@ -199,7 +199,7 @@ public class UserServiceImp implements UserService {
 		    }
 		}
 
-	@Recover 
+	@Recover
 	public User recover(Exception e, String userId, MultipartFile multipartFile) {
 	    logger.error("Không thể tải lên tệp sau khi thử lại nhiều lần: {}. Lỗi: {}", 
 	                 multipartFile != null ? multipartFile.getOriginalFilename() : "null", e.getMessage());
@@ -390,6 +390,21 @@ public class UserServiceImp implements UserService {
 
 	    // Lưu người dùng vào cơ sở dữ liệu
 	    return userRepository.save(user);
+	}
+
+	@Override
+	public User deleteAvatar(String userId) throws Exception {
+		// TODO Auto-generated method stub
+		User user = userRepository.findById(userId)
+		        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		    if (user.getAvatar() != null) {
+		        s3Service.deleteFile(user.getAvatar()); // xóa khỏi S3
+		        user.setAvatar(null);
+		        user.setAvatarUrl(null);
+		    }
+
+		    return userRepository.save(user);
 	}
 
 }
