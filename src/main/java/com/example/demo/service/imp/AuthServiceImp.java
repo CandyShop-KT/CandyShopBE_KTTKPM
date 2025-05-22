@@ -12,6 +12,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 
 import com.example.demo.dto.LoginRequestDTO;
 import com.example.demo.dto.LoginResponseDTO;
@@ -54,31 +56,32 @@ public class AuthServiceImp implements AuthService {
 	}
 
 	@Override
+	@Retryable(value = Exception.class, maxAttempts = 3, backoff = @Backoff(delay = 3000))
 	public LoginResponseDTO login(LoginRequestDTO loginRequestDTO) throws Exception {
-	    try {
-	        User user = userRepository.findByUserName(loginRequestDTO.getUsername())
-	                .orElseThrow(() -> new AuthenticationException("Tên đăng nhập không tồn tại"));
-	        
-	        Authentication authentication = authenticationManager.authenticate(
-	        		 new UsernamePasswordAuthenticationToken(
-	                         loginRequestDTO.getUsername(),
-	                         loginRequestDTO.getPassword()
-	                 )
-	        );
-	        if (!authentication.isAuthenticated()) {
-	            throw new AuthenticationException("Xác thực thất bại");
-	        }
-	        // Tạo token và trả về đối tượng LoginResponseDTO
-	        String token = jwtUtil.generateToken(user.getUserName());
-	        return buildLoginResponse(user, token);
-
-	    } catch (BadCredentialsException e) {
-	        throw new AuthenticationException("Mật khẩu không đúng");
-	    } catch (AuthenticationException e) {
-	        throw e;
-	    } catch (Exception e) {
-	        throw new Exception("Đã xảy ra lỗi trong quá trình đăng nhập", e);
-	    }
+		try {
+			Authentication authentication = authenticationManager.authenticate(
+					new UsernamePasswordAuthenticationToken(loginRequestDTO.getUsername(), loginRequestDTO.getPassword()));
+			User user = userRepository.findByUserName(loginRequestDTO.getUsername())
+					.orElseThrow(() -> new AuthenticationException("User not found"));
+			String token = jwtUtil.generateToken(user.getUserName());
+			return new LoginResponseDTO(
+				user.getUserId(),
+				user.getUserName(),
+				user.getFirstName(),
+				user.getLastName(),
+				user.getPhoneNumber(),
+				user.getEmail(),
+				user.getGender(),
+				user.getAvatarUrl(),
+				user.getBirthDay(),
+				user.getCreatedAt(),
+				user.getUpdatedAt(),
+				user.getRole(),
+				token
+			);
+		} catch (BadCredentialsException e) {
+			throw new AuthenticationException("Invalid username or password");
+		}
 	}
 
 	private LoginResponseDTO buildLoginResponse(User user, String token) {
