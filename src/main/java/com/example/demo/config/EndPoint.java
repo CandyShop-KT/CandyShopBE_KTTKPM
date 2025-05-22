@@ -2,7 +2,7 @@ package com.example.demo.config;
 
 public class EndPoint {
 
-	public static String[] ALLOWED_ORIGINS = { "http://localhost:3000" };
+	public static String[] ALLOWED_ORIGINS = { "http://localhost:3000", "https://candy-shop-azure.vercel.app", "https://candy-shop-oo.vercel.app" ,"https://candy-sho-o.netlify.app"};
 	public static String[] ALLOWED_METHODS = { "GET", "POST", "PUT", "DELETE", "PATCH" };
 	public static String[] PUBLIC_METHODS_POST = { "/api/auth/login", "/api/auth/register" };
 	public static String[] PUBLIC_METHODS_GET = 
@@ -30,7 +30,9 @@ public class EndPoint {
 				
 				"/api/subcategories/*",
 				
-				"/api/wards/*"
+				"/api/wards/*",
+				"/api/payments/vnpay/return", 
+				"/api/payments/vnpay/ipn"
 		};
 
 }

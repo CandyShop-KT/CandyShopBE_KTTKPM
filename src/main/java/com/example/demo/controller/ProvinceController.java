@@ -49,7 +49,7 @@ public class ProvinceController {
 
 	@GetMapping
 	public ResponseEntity<?> getProvinces(@RequestParam(defaultValue = "0") int page,
-			@RequestParam(defaultValue = "10") int limit, @RequestParam(defaultValue = "provinceName") String sortField,
+			@RequestParam(defaultValue = "60") int limit, @RequestParam(defaultValue = "provinceName") String sortField,
 			@RequestParam(defaultValue = "asc") String sortOder) throws Exception {
 		PagedResponseDTO<Province> pagedResponseDTO = provinceService.getProvinces(page, limit, sortField, sortOder);
 		return ResponseEntity.ok(new ApiResponseDTO<PagedResponseDTO<Province>>("Get provinces success!",
