@@ -4,6 +4,7 @@ pipeline {
     environment {
         IMAGE_NAME = "candyshop"
         CONTAINER_NAME = "candyshop"
+        JAR_FILE = "CandyShop-0.0.1-SNAPSHOT.jar"
         HOST_PORT = "8081"
         CONTAINER_PORT = "8081"
     }
@@ -17,7 +18,7 @@ pipeline {
 
         stage('Build .jar') {
             steps {
-                bat '.\\mvnw.cmd clean install -DskipTests'
+                bat '.\\mvnw.cmd clean install -DskipTests'  // Skip tests cho nhanh (tuỳ chọn)
             }
         }
 
@@ -27,10 +28,13 @@ pipeline {
             }
         }
 
-        stage('Deploy with docker-compose') {
+        stage('Run Docker container') {
             steps {
-                bat 'docker-compose down'
-                bat 'docker-compose up -d --build'
+                bat """
+                    docker stop %CONTAINER_NAME% || echo Container not running
+                    docker rm %CONTAINER_NAME% || echo Container not exist
+                    docker run -d -p %HOST_PORT%:%CONTAINER_PORT% --name %CONTAINER_NAME% %IMAGE_NAME%
+                """
             }
         }
     }
@@ -39,6 +43,7 @@ pipeline {
         success {
             echo "CI/CD hoàn tất. Ứng dụng đang chạy tại http://localhost:%HOST_PORT%"
         }
+
         failure {
             echo "Có lỗi xảy ra trong pipeline!"
         }
