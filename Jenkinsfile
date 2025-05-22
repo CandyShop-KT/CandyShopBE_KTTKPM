@@ -29,10 +29,7 @@ pipeline {
 
         stage('Deploy with docker-compose') {
             steps {
-                // Dừng và xóa các container cũ
                 bat 'docker-compose down'
-
-                // Khởi chạy lại docker-compose, build lại image luôn
                 bat 'docker-compose up -d --build'
             }
         }
