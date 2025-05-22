@@ -14,9 +14,10 @@ pipeline {
             }
         }
 
-        stage('Run JAR') {
+        stage('Deploy (Run JAR)') {
             steps {
                 bat '''
+                    taskkill /F /IM java.exe /T || echo No java process found
                     if exist target\\CandyShop-0.0.1-SNAPSHOT.jar (
                         start /B java -jar target\\CandyShop-0.0.1-SNAPSHOT.jar
                     ) else (
