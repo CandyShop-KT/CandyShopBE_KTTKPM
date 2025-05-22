@@ -3,8 +3,7 @@ pipeline {
 
     environment {
         TELEGRAM_CHAT_ID = credentials('TELEGRAM_CHAT_ID')
-        TELEGRAM_BOT_NAME = credentials('TELEGRAM_BOT_NAME')
-        TELEGRAM_BOT_TOKEN = credentials('telegram-bot-token')
+        TELEGRAM_BOT_NAME = 'jenkins_notifier_2025_bot'
         IMAGE_NAME = "candyshop"
         CONTAINER_NAME = "candyshop"
         JAR_FILE = "CandyShop-0.0.1-SNAPSHOT.jar"
@@ -47,17 +46,14 @@ pipeline {
             echo "CI/CD hoàn tất. Ứng dụng đang chạy tại http://localhost:%HOST_PORT%"
             telegramSend(
                 botName: env.TELEGRAM_BOT_NAME,
-                botToken: env.TELEGRAM_BOT_TOKEN,
                 chatId: env.TELEGRAM_CHAT_ID,
                 message: " CI/CD hoàn tất! Ứng dụng đang chạy tại http://localhost:%HOST_PORT% \nJob: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
             )
         }
-
         failure {
             echo "Có lỗi xảy ra trong pipeline!"
             telegramSend(
                 botName: env.TELEGRAM_BOT_NAME,
-                botToken: env.TELEGRAM_BOT_TOKEN,
                 chatId: env.TELEGRAM_CHAT_ID,
                 message: " Build thất bại! Vui lòng kiểm tra Jenkins.\nJob: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
             )
