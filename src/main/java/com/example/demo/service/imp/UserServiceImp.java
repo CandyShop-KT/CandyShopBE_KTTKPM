@@ -126,85 +126,85 @@ public class UserServiceImp implements UserService {
 		userRepository.save(user);
 	}
 
-	@Override
-	@Transactional
-	public User uploadAvatar(String userId, MultipartFile multipartFile) throws Exception {
-		if (multipartFile == null)
-			throw new BadRequestException("avatar", "Avatar is required");
-		String avatarName = null;
-		try {
-			User user = userRepository.findById(userId)
-					.orElseThrow(() -> new ResourceNotFoundException("User not found"));
-			if (user.getAvatar() != null && user.getAvatarUrl() != null)
-				s3Service.deleteFile(user.getAvatar());
-			avatarName = s3Service.uploadFile(multipartFile);
-			String avatarUrl = String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, "ap-southeast-1",
-					avatarName);
-			user.setAvatar(avatarName);
-			user.setAvatarUrl(avatarUrl);
-			return userRepository.save(user);
-		} catch (Exception e) {
-			if (avatarName != null)
-				s3Service.deleteFile(avatarName);
-			throw e;
-		}
-	}
-//	@Retryable(
-//		    value = {IOException.class, SdkClientException.class},
-//		    maxAttempts = 5,
-//		    backoff = @Backoff(delay = 3000)
-//		)
-//		public User uploadAvatar(String userId, MultipartFile multipartFile) throws IOException {
-//		    if (multipartFile != null) {
-//		        String avatarName = null;
-//		        try {
-//		            User user = userRepository.findById(userId)
-//		                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-//
-//		            if (user.getAvatar() != null && user.getAvatarUrl() != null) {
-//		                s3Service.deleteFile(user.getAvatar());
-//		            }
-//
-//		            avatarName = s3Service.uploadFile(multipartFile);
-//
-//		            String avatarUrl = String.format("https://%s.s3.%s.amazonaws.com/%s",
-//		                    bucketName, "ap-southeast-1", avatarName);
-//		            user.setAvatar(avatarName);
-//		            user.setAvatarUrl(avatarUrl);
-//
-//		            return userRepository.save(user);
-//		        } catch (SdkClientException| IOException e) {
-//		            if (avatarName != null) {
-//		                try {
-//		                    s3Service.deleteFile(avatarName); // cleanup
-//		                } catch (Exception ex) {
-//		                    logger.warn("Không thể xóa file trong S3: {}", avatarName, ex);
-//		                }
-//		            }
-//		            throw e; 
-//		        } catch (Exception e) {
-//		            if (avatarName != null) {
-//		                try {
-//		                    s3Service.deleteFile(avatarName);
-//		                } catch (Exception ex) {
-//		                    logger.warn("Không thể xóa file trong S3: {}", avatarName, ex);
-//		                }
-//		            }
-//		            throw new IOException("Lỗi không xác định khi upload ảnh", e);
-//		        }
-//		    } else {
-//		        User user = userRepository.findById(userId)
-//		                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-//		        return user;
-//		    }
+//	@Override
+//	@Transactional
+//	public User uploadAvatar(String userId, MultipartFile multipartFile) throws Exception {
+//		if (multipartFile == null)
+//			throw new BadRequestException("avatar", "Avatar is required");
+//		String avatarName = null;
+//		try {
+//			User user = userRepository.findById(userId)
+//					.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+//			if (user.getAvatar() != null && user.getAvatarUrl() != null)
+//				s3Service.deleteFile(user.getAvatar());
+//			avatarName = s3Service.uploadFile(multipartFile);
+//			String avatarUrl = String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, "ap-southeast-1",
+//					avatarName);
+//			user.setAvatar(avatarName);
+//			user.setAvatarUrl(avatarUrl);
+//			return userRepository.save(user);
+//		} catch (Exception e) {
+//			if (avatarName != null)
+//				s3Service.deleteFile(avatarName);
+//			throw e;
 //		}
-//
-//	@Recover
-//	public User recover(Exception e, String userId, MultipartFile multipartFile) {
-//	    logger.error("Không thể tải lên tệp sau khi thử lại nhiều lần: {}. Lỗi: {}", 
-//	                 multipartFile != null ? multipartFile.getOriginalFilename() : "null", e.getMessage());
-//	    throw new CustomException("Tải ảnh lên thất bại. Vui lòng kiểm tra kết nối hoặc thử lại sau.");
 //	}
+	@Retryable(
+		    value = {IOException.class, SdkClientException.class},
+		    maxAttempts = 5,
+		    backoff = @Backoff(delay = 3000)
+		)
+		public User uploadAvatar(String userId, MultipartFile multipartFile) throws IOException {
+		    if (multipartFile != null) {
+		        String avatarName = null;
+		        try {
+		            User user = userRepository.findById(userId)
+		                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		            if (user.getAvatar() != null && user.getAvatarUrl() != null) {
+		                s3Service.deleteFile(user.getAvatar());
+		            }
+
+		            avatarName = s3Service.uploadFile(multipartFile);
+
+		            String avatarUrl = String.format("https://%s.s3.%s.amazonaws.com/%s",
+		                    bucketName, "ap-southeast-1", avatarName);
+		            user.setAvatar(avatarName);
+		            user.setAvatarUrl(avatarUrl);
+
+		            return userRepository.save(user);
+		        } catch (SdkClientException| IOException e) {
+		            if (avatarName != null) {
+		                try {
+		                    s3Service.deleteFile(avatarName); // cleanup
+		                } catch (Exception ex) {
+		                    logger.warn("Không thể xóa file trong S3: {}", avatarName, ex);
+		                }
+		            }
+		            throw e; 
+		        } catch (Exception e) {
+		            if (avatarName != null) {
+		                try {
+		                    s3Service.deleteFile(avatarName);
+		                } catch (Exception ex) {
+		                    logger.warn("Không thể xóa file trong S3: {}", avatarName, ex);
+		                }
+		            }
+		            throw new IOException("Lỗi không xác định khi upload ảnh", e);
+		        }
+		    } else {
+		        User user = userRepository.findById(userId)
+		                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+		        return user;
+		    }
+		}
+
+	@Recover
+	public User recover(Exception e, String userId, MultipartFile multipartFile) {
+	    logger.error("Không thể tải lên tệp sau khi thử lại nhiều lần: {}. Lỗi: {}", 
+	                 multipartFile != null ? multipartFile.getOriginalFilename() : "null", e.getMessage());
+	    throw new CustomException("Tải ảnh lên thất bại. Vui lòng kiểm tra kết nối hoặc thử lại sau.");
+	}
 
 
 
