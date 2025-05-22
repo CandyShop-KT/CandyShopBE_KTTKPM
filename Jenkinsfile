@@ -1,6 +1,12 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = "candyshop"
+        CONTAINER_NAME = "candyshop"
+        JAR_FILE = "CandyShop-0.0.1-SNAPSHOT.jar"
+    }
+
     stages {
         stage('Clone code') {
             steps {
@@ -8,23 +14,36 @@ pipeline {
             }
         }
 
-        stage('Build project') {
+        stage('Build .jar') {
             steps {
                 bat '.\\mvnw.cmd clean install'
             }
         }
 
-        stage('Run JAR') {
+        stage('Build Docker image') {
+            steps {
+                bat 'docker build -t %IMAGE_NAME% .'
+            }
+        }
+
+        stage('Run Docker container') {
             steps {
                 bat '''
-                    if exist target\\CandyShop-0.0.1-SNAPSHOT.jar (
-                        start /B java -jar target\\CandyShop-0.0.1-SNAPSHOT.jar
-                    ) else (
-                        echo JAR file not found
-                        exit 1
-                    )
+                    docker stop %CONTAINER_NAME% || echo Not running
+                    docker rm %CONTAINER_NAME% || echo Not exist
+                    docker run -d -p 9090:8080 --name %CONTAINER_NAME% %IMAGE_NAME%
                 '''
             }
+        }
+    }
+
+    post {
+        success {
+            echo "CI/CD hoàn tất. Ứng dụng đang chạy tại http://localhost:9090"
+        }
+
+        failure {
+            echo "Có lỗi xảy ra trong pipeline!"
         }
     }
 }
