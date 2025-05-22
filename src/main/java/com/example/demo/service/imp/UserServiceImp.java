@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -43,6 +45,8 @@ import com.example.demo.service.UserService;
 @Service
 public class UserServiceImp implements UserService {
 
+	private static final Logger logger = LoggerFactory.getLogger(UserServiceImp.class);
+
 	private UserRepository userRepository;
 	private BCryptPasswordEncoder bycryptPasswordEncoder;
 	private S3Service s3Service;
@@ -75,8 +79,8 @@ public class UserServiceImp implements UserService {
 		User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		if (userRepository.existsByPhoneNumber(profileRequestDTO.getPhoneNumber())
-                && !user.getPhoneNumber().equals(profileRequestDTO.getPhoneNumber()))
-            throw new ResourceConflictException("phoneNumber", "Phone number already");
+				&& !user.getPhoneNumber().equals(profileRequestDTO.getPhoneNumber()))
+			throw new ResourceConflictException("phoneNumber", "Phone number already");
 
 		String firstName = profileRequestDTO.getFirstName();
 		String lastName = profileRequestDTO.getLastName();
@@ -97,7 +101,6 @@ public class UserServiceImp implements UserService {
 
 		return userRepository.save(user);
 	}
-	
 
 	@Override
 	@Transactional
@@ -245,15 +248,31 @@ public class UserServiceImp implements UserService {
 	public User verifyUser(String userId, VerifyUserRequest verifyUserRequest) throws Exception {
 		User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 		String email = user.getEmail();
-		Object savedOTP = redisService.get(String.format("otp?email=%s", email));
-		if (savedOTP == null || !savedOTP.equals(verifyUserRequest.getOtp()))
+		String redisKey = String.format("otp?email=%s", email);
+		logger.debug("Verifying OTP for user: {}, email: {}", userId, email);
+		logger.debug("Looking up OTP in Redis with key: {}", redisKey);
+
+		Object savedOTP = redisService.get(redisKey);
+		logger.debug("Retrieved OTP from Redis: {}", savedOTP);
+
+		// READ OTP FROM REDIS
+		if (savedOTP == null || !savedOTP.equals(verifyUserRequest.getOtp())) {
+			logger.debug("OTP verification failed. Saved OTP: {}, Provided OTP: {}", savedOTP,
+					verifyUserRequest.getOtp());
 			throw new AuthenticationException("OTP is invalid or expired");
+		}
+
 		if (user.getStatus().equals(UserStatus.INACTIVE)) {
 			user.setStatus(UserStatus.ACTIVE);
+			logger.debug("User status updated to ACTIVE");
 		} else {
+			logger.debug("User is already verified");
 			throw new AuthenticationException("User is already verified");
 		}
-		redisService.delete(String.format("otp?email=%s", email));
+
+		// DELETE OTP FROM REDIS
+		redisService.delete(redisKey);
+		logger.debug("OTP deleted from Redis after successful verification");
 		return userRepository.save(user);
 	}
 
@@ -261,6 +280,7 @@ public class UserServiceImp implements UserService {
 	public User getUserById(String userId) {
 		return userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 	}
+
 	@Override
 	public List<User> getAllUsers() {
 		return userRepository.findAll();
@@ -269,8 +289,8 @@ public class UserServiceImp implements UserService {
 	@Override
 	public User updateUserRole(String userId, Role newRole) {
 		// TODO Auto-generated method stub
-		User user= getUserById(userId); //đảm bảo user tồn tại
-		if(user.getRole()== newRole) {
+		User user = getUserById(userId); // đảm bảo user tồn tại
+		if (user.getRole() == newRole) {
 			return user;
 		}
 		user.setRole(newRole);
@@ -279,46 +299,46 @@ public class UserServiceImp implements UserService {
 
 	@Override
 	public User createUserByAdmin(CreateUserRequestDTO dto, MultipartFile multipartFile) throws Exception {
-	    // Kiểm tra tính duy nhất của tên người dùng, email và số điện thoại
-	    if (userRepository.existsByUserName(dto.getUserName())) {
-	        throw new IllegalArgumentException("Username already exists");
-	    }
+		// Kiểm tra tính duy nhất của tên người dùng, email và số điện thoại
+		if (userRepository.existsByUserName(dto.getUserName())) {
+			throw new IllegalArgumentException("Username already exists");
+		}
 
-	    if (userRepository.existsByEmail(dto.getEmail())) {
-	        throw new IllegalArgumentException("Email already exists");
-	    }
+		if (userRepository.existsByEmail(dto.getEmail())) {
+			throw new IllegalArgumentException("Email already exists");
+		}
 
-	    if (dto.getPhoneNumber() != null && userRepository.existsByPhoneNumber(dto.getPhoneNumber())) {
-	        throw new IllegalArgumentException("Phone number already exists");
-	    }
+		if (dto.getPhoneNumber() != null && userRepository.existsByPhoneNumber(dto.getPhoneNumber())) {
+			throw new IllegalArgumentException("Phone number already exists");
+		}
 
-	    // Tạo người dùng mới
-	    User user = new User();
-	    user.setUserId(UUID.randomUUID().toString());
-	    user.setUserName(dto.getUserName());
-	    user.setPassword(bycryptPasswordEncoder.encode(dto.getPassword()));
-	    user.setFirstName(dto.getFirstName());
-	    user.setLastName(dto.getLastName());
-	    user.setEmail(dto.getEmail());
-	    user.setPhoneNumber(dto.getPhoneNumber());
-	    user.setGender(dto.getGender());
-	    user.setBirthDay(dto.getBirthDay());
-	    user.setRole(dto.getRole());
-	    user.setStatus(UserStatus.ACTIVE); // Giả sử trạng thái là ACTIVE
-	    user.setCreatedAt(LocalDateTime.now());
-	    user.setUpdatedAt(LocalDateTime.now());
+		// Tạo người dùng mới
+		User user = new User();
+		user.setUserId(UUID.randomUUID().toString());
+		user.setUserName(dto.getUserName());
+		user.setPassword(bycryptPasswordEncoder.encode(dto.getPassword()));
+		user.setFirstName(dto.getFirstName());
+		user.setLastName(dto.getLastName());
+		user.setEmail(dto.getEmail());
+		user.setPhoneNumber(dto.getPhoneNumber());
+		user.setGender(dto.getGender());
+		user.setBirthDay(dto.getBirthDay());
+		user.setRole(dto.getRole());
+		user.setStatus(UserStatus.ACTIVE); // Giả sử trạng thái là ACTIVE
+		user.setCreatedAt(LocalDateTime.now());
+		user.setUpdatedAt(LocalDateTime.now());
 
-	    // Nếu có avatar thì upload lên S3
-	    if (multipartFile != null && !multipartFile.isEmpty()) {
-	        String avatarName = s3Service.uploadFile(multipartFile); // sử dụng multipartFile
-	        String avatarUrl = String.format("https://%s.s3.%s.amazonaws.com/%s", 
-	                bucketName, "ap-southeast-1", avatarName);
-	        user.setAvatar(avatarName);
-	        user.setAvatarUrl(avatarUrl);
-	    }
+		// Nếu có avatar thì upload lên S3
+		if (multipartFile != null && !multipartFile.isEmpty()) {
+			String avatarName = s3Service.uploadFile(multipartFile); // sử dụng multipartFile
+			String avatarUrl = String.format("https://%s.s3.%s.amazonaws.com/%s",
+					bucketName, "ap-southeast-1", avatarName);
+			user.setAvatar(avatarName);
+			user.setAvatarUrl(avatarUrl);
+		}
 
-	    // Lưu người dùng vào cơ sở dữ liệu
-	    return userRepository.save(user);
+		// Lưu người dùng vào cơ sở dữ liệu
+		return userRepository.save(user);
 	}
 
 }
