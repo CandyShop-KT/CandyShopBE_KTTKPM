@@ -31,7 +31,7 @@ pipeline {
                 bat '''
                     docker stop %CONTAINER_NAME% || echo Not running
                     docker rm %CONTAINER_NAME% || echo Not exist
-                    docker run -d -p 9090:8080 --name %CONTAINER_NAME% %IMAGE_NAME%
+                    docker run -d -p 9090:8081 --name %CONTAINER_NAME% %IMAGE_NAME%
                 '''
             }
         }
