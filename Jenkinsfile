@@ -5,6 +5,8 @@ pipeline {
         IMAGE_NAME = "candyshop"
         CONTAINER_NAME = "candyshop"
         JAR_FILE = "CandyShop-0.0.1-SNAPSHOT.jar"
+        HOST_PORT = "8081"
+        CONTAINER_PORT = "8081"
     }
 
     stages {
@@ -16,30 +18,30 @@ pipeline {
 
         stage('Build .jar') {
             steps {
-                bat '.\\mvnw.cmd clean install'
+                bat '.\\mvnw.cmd clean install -DskipTests'  // Skip tests cho nhanh (tuỳ chọn)
             }
         }
 
         stage('Build Docker image') {
             steps {
-                bat 'docker build -t %IMAGE_NAME% .'
+                bat "docker build -t %IMAGE_NAME% ."
             }
         }
 
         stage('Run Docker container') {
             steps {
-                bat '''
-                    docker stop %CONTAINER_NAME% || echo Not running
-                    docker rm %CONTAINER_NAME% || echo Not exist
-                    docker run -d -p 8081:8081 --name %CONTAINER_NAME% %IMAGE_NAME%
-                '''
+                bat """
+                    docker stop %CONTAINER_NAME% || echo Container not running
+                    docker rm %CONTAINER_NAME% || echo Container not exist
+                    docker run -d -p %HOST_PORT%:%CONTAINER_PORT% --name %CONTAINER_NAME% %IMAGE_NAME%
+                """
             }
         }
     }
 
     post {
         success {
-            echo "CI/CD hoàn tất. Ứng dụng đang chạy tại http://localhost:8081"
+            echo "CI/CD hoàn tất. Ứng dụng đang chạy tại http://localhost:%HOST_PORT%"
         }
 
         failure {
