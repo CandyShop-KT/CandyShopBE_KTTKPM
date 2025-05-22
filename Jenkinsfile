@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Clone code') {
             steps {
-                git 'https://github.com/CandyShop-KT/CandyShopBE_KTTKPM.git'
+                git branch: 'tram_retry', url: 'https://github.com/CandyShop-KT/CandyShopBE_KTTKPM.git'
             }
         }
 
@@ -16,7 +16,7 @@ pipeline {
 
         stage('Run JAR') {
             steps {
-                bat 'java -jar target\\CandyShop-0.0.1-SNAPSHOT.jar'
+                bat 'if exist target\\CandyShop-0.0.1-SNAPSHOT.jar (java -jar target\\CandyShop-0.0.1-SNAPSHOT.jar) else (echo JAR file not found && exit 1)'
             }
         }
     }
