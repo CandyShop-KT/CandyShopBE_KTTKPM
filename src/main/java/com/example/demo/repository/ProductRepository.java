@@ -1,5 +1,7 @@
 package com.example.demo.repository;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,6 +15,8 @@ import com.example.demo.model.Product;
 public interface ProductRepository extends JpaRepository<Product, String>{
     Page<Product> findBySubCategorySubCategoryId(String subCategoryId, Pageable pageable);
     Page<Product> findByProductNameContainingIgnoreCase(String productName, Pageable pageable);
+    List<Product> findBySubCategorySubCategoryId(String subCategoryId);
+
 
     @Query("SELECT p FROM Product p JOIN p.priceHistories ph WHERE ph.newPrice BETWEEN :minPrice AND :maxPrice")
     Page<Product> findByPriceRange(@Param("minPrice") double minPrice, @Param("maxPrice") double maxPrice, Pageable pageable);
