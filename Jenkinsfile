@@ -14,9 +14,16 @@ pipeline {
             }
         }
 
-        stage('Run Backend') {
+        stage('Run JAR') {
             steps {
-                bat 'start-backend.bat'
+                bat '''
+                    if exist target\\CandyShop-0.0.1-SNAPSHOT.jar (
+                        start /B java -jar target\\CandyShop-0.0.1-SNAPSHOT.jar
+                    ) else (
+                        echo JAR file not found
+                        exit 1
+                    )
+                '''
             }
         }
     }
