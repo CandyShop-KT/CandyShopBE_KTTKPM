@@ -66,7 +66,6 @@ public class UserServiceImp implements UserService {
 	private AddressRepository addressRepository;
 	@Value("${cloud.aws.s3.bucket}")
 	private String bucketName;
-	private static final Logger logger = LoggerFactory.getLogger(UserServiceImp.class);
 
 
 	public UserServiceImp(UserRepository userRepository, BCryptPasswordEncoder bycryptPasswordEncoder,
