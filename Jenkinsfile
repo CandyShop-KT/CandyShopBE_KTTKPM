@@ -31,7 +31,7 @@ pipeline {
                 bat '''
                     docker stop %CONTAINER_NAME% || echo Not running
                     docker rm %CONTAINER_NAME% || echo Not exist
-                    docker run -d -p 9090:8081 --name %CONTAINER_NAME% %IMAGE_NAME%
+                    docker run -d -p 8081:8081 --name %CONTAINER_NAME% %IMAGE_NAME%
                 '''
             }
         }
@@ -39,7 +39,7 @@ pipeline {
 
     post {
         success {
-            echo "CI/CD hoàn tất. Ứng dụng đang chạy tại http://localhost:9090"
+            echo "CI/CD hoàn tất. Ứng dụng đang chạy tại http://localhost:8081"
         }
 
         failure {
