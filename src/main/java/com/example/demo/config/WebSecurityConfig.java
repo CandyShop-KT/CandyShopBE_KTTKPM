@@ -54,9 +54,10 @@ public class WebSecurityConfig {
 			CorsConfiguration corsConfig = new CorsConfiguration();
 			corsConfig.setAllowedOrigins(Arrays.asList(EndPoint.ALLOWED_ORIGINS));
 			corsConfig.setAllowedMethods(Arrays.asList(EndPoint.ALLOWED_METHODS));
-	        corsConfig.setAllowedHeaders(Arrays.asList("Content-Type", "Authorization")); // Thêm header này
-
+			corsConfig.setAllowedHeaders(Arrays.asList("Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers"));
+			corsConfig.setExposedHeaders(Arrays.asList("Access-Control-Allow-Origin", "Access-Control-Allow-Credentials"));
 			corsConfig.setAllowCredentials(true);
+			corsConfig.setMaxAge(3600L);
 			return corsConfig;
 		}));
 		http.authorizeHttpRequests(authorizeRequests -> authorizeRequests.anyRequest().permitAll())
