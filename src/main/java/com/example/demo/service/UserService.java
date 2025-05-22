@@ -47,4 +47,5 @@ public interface UserService {
 	public User updateUserRole(String userId, Role newRole);
 	
 	public User createUserByAdmin(CreateUserRequestDTO dto, MultipartFile multipartFile) throws Exception;
+	public User deleteAvatar(String userId) throws Exception;
 }

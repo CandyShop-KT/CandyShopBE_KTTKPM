@@ -261,6 +261,20 @@ public class UserController {
 	    User createdUser = userService.createUserByAdmin(dto, multipartFile);
 	    return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
 	}
+	@PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+	@DeleteMapping("/{userId}/avatar")
+	public ResponseEntity<?> deleteAvatar(@PathVariable String userId) {
+	    try {
+	        User updatedUser = userService.deleteAvatar(userId);
+	        ApiResponseDTO<User> response = new ApiResponseDTO<>("Xóa avatar thành công", HttpStatus.OK.value(), updatedUser);
+	        return ResponseEntity.ok(response);
+	    } catch (Exception e) {
+	        ApiResponseDTO<Object> errorResponse = new ApiResponseDTO<>("Lỗi khi xóa avatar", HttpStatus.INTERNAL_SERVER_ERROR.value(), null);
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+	    }
+	}
+
+
 
 
 
