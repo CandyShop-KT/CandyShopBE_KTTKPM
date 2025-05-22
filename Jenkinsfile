@@ -16,7 +16,14 @@ pipeline {
 
         stage('Run JAR') {
             steps {
-                bat 'if exist target\\CandyShop-0.0.1-SNAPSHOT.jar (java -jar target\\CandyShop-0.0.1-SNAPSHOT.jar) else (echo JAR file not found && exit 1)'
+                bat '''
+                    if exist target\\CandyShop-0.0.1-SNAPSHOT.jar (
+                        start /B java -jar target\\CandyShop-0.0.1-SNAPSHOT.jar
+                    ) else (
+                        echo JAR file not found
+                        exit 1
+                    )
+                '''
             }
         }
     }
