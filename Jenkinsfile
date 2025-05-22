@@ -2,8 +2,6 @@ pipeline {
     agent any
 
     environment {
-        TELEGRAM_BOT_TOKEN = credentials('telegram-bot-token')
-        TELEGRAM_CHAT_ID = credentials('TELEGRAM_CHAT_ID')
         IMAGE_NAME = "candyshop"
         CONTAINER_NAME = "candyshop"
         JAR_FILE = "CandyShop-0.0.1-SNAPSHOT.jar"
@@ -20,7 +18,7 @@ pipeline {
 
         stage('Build .jar') {
             steps {
-                bat '.\\mvnw.cmd clean install -DskipTests'
+                bat '.\\mvnw.cmd clean install -DskipTests'  // Skip tests cho nhanh (tuỳ chọn)
             }
         }
 
@@ -44,20 +42,10 @@ pipeline {
     post {
         success {
             echo "CI/CD hoàn tất. Ứng dụng đang chạy tại http://localhost:%HOST_PORT%"
-            telegramSend(
-                botToken: env.TELEGRAM_BOT_TOKEN,
-                chatId: env.TELEGRAM_CHAT_ID,
-                message: "CI/CD hoàn tất! Ứng dụng đang chạy tại http://localhost:%HOST_PORT% \nJob: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
-            )
         }
 
         failure {
             echo "Có lỗi xảy ra trong pipeline!"
-            telegramSend(
-                botToken: env.TELEGRAM_BOT_TOKEN,
-                chatId: env.TELEGRAM_CHAT_ID,
-                message: "Build thất bại! Vui lòng kiểm tra Jenkins.\nJob: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
-            )
         }
     }
 }
