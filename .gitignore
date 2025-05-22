@@ -44,3 +44,6 @@ bin/
 ".env" 
 ".env" 
 ".env" 
+terraform.tfvars
+terraform.tfstate
+terraform.tfstate.backup
