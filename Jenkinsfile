@@ -10,7 +10,7 @@ pipeline {
     }
 
     stages {
-        stage('Clone code') {
+        stage('Pull code') {
             steps {
                 git branch: 'tram_retry', url: 'https://github.com/CandyShop-KT/CandyShopBE_KTTKPM.git'
             }
