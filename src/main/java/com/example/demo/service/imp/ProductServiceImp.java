@@ -3,6 +3,7 @@ package com.example.demo.service.imp;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -357,6 +358,48 @@ public PagedResponseDTO<ProductResponseDTO> getProductsByPriceRange(double minPr
 
     return pagedResponseDTO;
 }
+
+@Override
+public PagedResponseDTO<ProductResponseDTO> getProductsBySubCategory(
+        String subCategoryId,
+        int page,
+        int limit,
+        String sortBy
+) {
+    // B1: Lấy tất cả sản phẩm theo subCategoryId
+    List<Product> allProducts = productRepository.findBySubCategorySubCategoryId(subCategoryId);
+
+    // B2: Convert sang ProductResponseDTO (có currentPrice)
+    List<ProductResponseDTO> productDTOs = allProducts.stream()
+            .map(this::convertProductToProductResponseDTO)
+            .collect(Collectors.toList());
+
+    // B3: Sắp xếp theo sortBy
+    switch (sortBy) {
+        case "price_asc" -> productDTOs.sort(Comparator.comparingDouble(p -> p.getCurrentPrice().getNewPrice()));
+        case "price_desc" -> productDTOs.sort(Comparator.comparingDouble((ProductResponseDTO p) -> p.getCurrentPrice().getNewPrice()).reversed());
+        case "productName_asc" -> productDTOs.sort(Comparator.comparing(ProductResponseDTO::getProductName, String.CASE_INSENSITIVE_ORDER));
+        case "productName_desc" -> productDTOs.sort(Comparator.comparing(ProductResponseDTO::getProductName, String.CASE_INSENSITIVE_ORDER).reversed());
+        case "createdAt_desc" -> productDTOs.sort(Comparator.comparing(ProductResponseDTO::getCreatedAt).reversed());
+        default -> {} // không sắp xếp
+    }
+
+    // B4: Phân trang thủ công
+    int start = Math.min(page * limit, productDTOs.size());
+    int end = Math.min(start + limit, productDTOs.size());
+    List<ProductResponseDTO> pagedList = productDTOs.subList(start, end);
+
+    // B5: Trả về DTO phân trang
+    return new PagedResponseDTO<>(
+            pagedList,
+            page,
+            limit,
+            productDTOs.size(),
+            (int) Math.ceil((double) productDTOs.size() / limit)
+    );
+}
+
+
 
 
 }

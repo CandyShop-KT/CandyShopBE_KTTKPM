@@ -33,11 +33,19 @@ build/
 .vscode/
 
 ### ENV ###
-application.properties
-
+.terraform/
+.env
 ### LOG ###
 LOG_FILE_IS_UNDEFINED
 logs/
 
 bin/
 *.class
+
+".env" 
+".env" 
+".env" 
+terraform.tfvars
+terraform.tfstate
+terraform.tfstate.backup
+
