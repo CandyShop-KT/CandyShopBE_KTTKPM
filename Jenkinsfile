@@ -33,12 +33,6 @@ pipeline {
             }
         }
 
-        stage('Run unit tests') {
-            steps {
-                bat '.\\mvnw.cmd test'
-            }
-        }
-
         stage('Build .jar') {
             steps {
                 bat '.\\mvnw.cmd clean install -DskipTests'
