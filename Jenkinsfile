@@ -16,9 +16,32 @@ pipeline {
             }
         }
 
+        stage('Detect unresolved merge conflict') {
+            steps {
+                script {
+                    def conflictFound = bat(script: 'findstr /S /C:"<<<<<<<" *.java', returnStatus: true)
+                    if (conflictFound == 0) {
+                        error " Merge conflict chưa được resolve đầy đủ! Vui lòng kiểm tra lại code."
+                    }
+                }
+            }
+        }
+
+        stage('Compile only (syntax check)') {
+            steps {
+                bat '.\\mvnw.cmd compile -DskipTests'
+            }
+        }
+
+        stage('Run unit tests') {
+            steps {
+                bat '.\\mvnw.cmd test'
+            }
+        }
+
         stage('Build .jar') {
             steps {
-                bat '.\\mvnw.cmd clean install -DskipTests'  // Skip tests cho nhanh (tuỳ chọn)
+                bat '.\\mvnw.cmd clean install -DskipTests'
             }
         }
 
@@ -31,8 +54,10 @@ pipeline {
         stage('Run Docker container') {
             steps {
                 bat """
-                    docker stop %CONTAINER_NAME% || echo Container not running
-                    docker rm %CONTAINER_NAME% || echo Container not exist
+                    for /f "tokens=*" %%i in ('docker ps -aqf "name=%CONTAINER_NAME%"') do (
+                        docker stop %%i
+                        docker rm %%i
+                    )
                     docker run -d -p %HOST_PORT%:%CONTAINER_PORT% --name %CONTAINER_NAME% %IMAGE_NAME%
                 """
             }
