@@ -14,8 +14,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 
 import com.example.demo.dto.LoginRequestDTO;
 import com.example.demo.dto.LoginResponseDTO;
@@ -64,10 +62,8 @@ public class AuthServiceImp implements AuthService {
 	}
 
 	@Override
-	@Retryable(value = Exception.class, maxAttempts = 3, backoff = @Backoff(delay = 3000))
 	public LoginResponseDTO login(LoginRequestDTO loginRequestDTO) throws Exception {
 		try {
-
 			User user = userRepository.findByUserName(loginRequestDTO.getUsername())
 					.orElseThrow(() -> new AuthenticationException("Tên đăng nhập không tồn tại"));
 
@@ -88,7 +84,6 @@ public class AuthServiceImp implements AuthService {
 			throw e;
 		} catch (Exception e) {
 			throw new Exception("Đã xảy ra lỗi trong quá trình đăng nhập", e);
-
 		}
 	}
 
@@ -107,6 +102,7 @@ public class AuthServiceImp implements AuthService {
 		response.setUpdatedAt(user.getUpdatedAt());
 		response.setRole(user.getRole());
 		response.setToken(token);
+		response.setStatus(user.getStatus().toString());
 		return response;
 	}
 
