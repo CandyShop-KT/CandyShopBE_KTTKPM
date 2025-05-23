@@ -21,7 +21,7 @@ pipeline {
                 script {
                     def conflictFound = bat(script: 'findstr /S /C:"<<<<<<<" *.java', returnStatus: true)
                     if (conflictFound == 0) {
-                        error " Merge conflict chưa được resolve đầy đủ! Vui lòng kiểm tra lại code."
+                        error " Merge conflict haven't been resolve!"
                     }
                 }
             }
@@ -60,11 +60,11 @@ pipeline {
 
     post {
         success {
-            echo "CI/CD hoàn tất. Ứng dụng đang chạy tại http://localhost:%HOST_PORT%"
+            echo "CI/CD success. Application is running on http://localhost:8081"
         }
 
         failure {
-            echo "Có lỗi xảy ra trong pipeline!"
+            echo "Have error error in pipeline!"
         }
     }
 }
