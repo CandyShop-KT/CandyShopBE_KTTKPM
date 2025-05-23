@@ -1,4 +1,8 @@
-variable "db_name" {}
+variable "db_name" {
+  description = "Name of the database"
+  type        = string
+  default     = "candyshop"
+}
 variable "db_username" {}
 variable "db_password" {}
 variable "aws_bucket" {}
