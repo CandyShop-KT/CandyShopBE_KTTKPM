@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -30,6 +31,7 @@ import com.example.demo.dto.ApiResponseErrorDTO;
 import com.example.demo.dto.ApiResponseNoDataDTO;
 import com.example.demo.dto.ChangeEmailRequestDTO;
 import com.example.demo.dto.ChangePasswordRequestDTO;
+import com.example.demo.dto.CreateUserRequestDTO;
 import com.example.demo.dto.OrderPageResponseDTO;
 import com.example.demo.dto.PagedResponseDTO;
 import com.example.demo.dto.UserProfileRequestDTO;
@@ -37,6 +39,8 @@ import com.example.demo.dto.VerifyUserRequest;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.model.Address;
 import com.example.demo.model.User;
+import com.example.demo.model.enums.Gender;
+import com.example.demo.model.enums.Role;
 import com.example.demo.service.OrderService;
 import com.example.demo.service.UserService;
 
@@ -231,5 +235,47 @@ public class UserController {
 		ApiResponseDTO<List<User>> response = new ApiResponseDTO<>("Lấy user thành công", HttpStatus.OK.value(), users);
         return ResponseEntity.ok(response);
     }
+	
+	@PreAuthorize("hasRole('ADMIN')")
+	@PatchMapping("/{userId}/role")
+	public ResponseEntity<?> updateUserRole(@PathVariable String userId, @RequestParam("role") Role role) throws ResourceNotFoundException{
+		User updatedUser= userService.updateUserRole(userId, role);
+		ApiResponseDTO<User> response= new ApiResponseDTO<>("Cập nhật vai trò thành công",HttpStatus.OK.value(),updatedUser);
+		return ResponseEntity.ok(response);
+	}
+	
+	
+	@PreAuthorize("hasRole('ADMIN')")
+	@PostMapping("/addUserFromAdmin")
+	public ResponseEntity<User> createUserByAdmin(@RequestParam("userName") String userName,
+	                                              @RequestParam("firstName") String firstName,
+	                                              @RequestParam("lastName") String lastName,
+	                                              @RequestParam("phoneNumber") String phoneNumber,
+	                                              @RequestParam("email") String email,
+	                                              @RequestParam("gender") Gender gender,
+	                                              @RequestParam("password") String password,
+	                                              @RequestParam("birthDay") LocalDate birthDay,
+	                                              @RequestParam("role") Role role,
+	                                              @RequestParam(value = "avatar", required = false) MultipartFile multipartFile) throws Exception {
+	    CreateUserRequestDTO dto = new CreateUserRequestDTO(userName, password, firstName, lastName, email, phoneNumber, gender, birthDay, role);
+	    User createdUser = userService.createUserByAdmin(dto, multipartFile);
+	    return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
+	}
+	@PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+	@DeleteMapping("/{userId}/avatar")
+	public ResponseEntity<?> deleteAvatar(@PathVariable String userId) {
+	    try {
+	        User updatedUser = userService.deleteAvatar(userId);
+	        ApiResponseDTO<User> response = new ApiResponseDTO<>("Xóa avatar thành công", HttpStatus.OK.value(), updatedUser);
+	        return ResponseEntity.ok(response);
+	    } catch (Exception e) {
+	        ApiResponseDTO<Object> errorResponse = new ApiResponseDTO<>("Lỗi khi xóa avatar", HttpStatus.INTERNAL_SERVER_ERROR.value(), null);
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+	    }
+	}
+
+
+
+
 
 }

@@ -45,5 +45,6 @@ public interface ProductService {
 
 	public PagedResponseDTO<ProductResponseDTO> getProductsByPriceRange(double minPrice, double maxPrice, int page,
 			int limit, String sortField, String sortOrder);
+	public PagedResponseDTO<ProductResponseDTO> getProductsBySubCategory(String subCategoryId, int page, int limit, String sortBy);
 
 }

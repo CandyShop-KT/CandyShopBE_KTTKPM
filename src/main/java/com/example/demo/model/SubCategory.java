@@ -37,7 +37,6 @@ public class SubCategory {
 
 	@ManyToOne(cascade = CascadeType.REFRESH)
 	@JoinColumn(name = "category_id")
-	@JsonIgnore
 	private Category category;
 
 	@OneToMany(mappedBy = "subCategory", cascade = CascadeType.REFRESH)

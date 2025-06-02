@@ -1,0 +1,39 @@
+@token=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0dW9uZ3ZhbiIsImlhdCI6MTc0NTU1NjI3OCwiZXhwIjoxNzQ1NTkyMjc4fQ.X0ThgsITYcEGwehTS4Gdp8pH5JzHmrO_vw71AhiOJ51WaQMdNnynwRPXwDQ-MqwaRpJEtpEySdjDx-tKRC1uPg
+@subCategoryId=2a3589a6-bfe5-46d2-a19d-7d89906e4308
+@categoryId=288ae147-5dc7-48a6-96ba-601ac43fc211
+
+### Get all subcategories
+GET http://localhost:8081/api/subcategories
+Authorization: Bearer {{token}}
+
+### Get subcategory by id
+GET http://localhost:8081/api/subcategories/{{subCategoryId}}
+Authorization: Bearer {{token}}
+
+### Search subcategories by name
+GET http://localhost:8081/api/subcategories/search?keyword=Kẹo
+Authorization: Bearer {{token}}
+
+### Create new subcategory
+POST http://localhost:8081/api/subcategories
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "subCategoryName": "Sococla sữa dubai",
+    "categoryId": "{{categoryId}}"
+}
+
+### Update subcategory
+PATCH http://localhost:8081/api/subcategories/{{subCategoryId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "subCategoryName": "Socola đen đắng",
+    "categoryId": "{{categoryId}}"
+}
+
+### Delete subcategory
+DELETE http://localhost:8081/api/subcategories/{{subCategoryId}}
+Authorization: Bearer {{token}} 

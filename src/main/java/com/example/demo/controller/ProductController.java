@@ -57,20 +57,31 @@ public class ProductController {
 
 	}
 
+//	@GetMapping("/subcategory/{subCategoryId}")
+//	public ResponseEntity<?> getProductsBySubCategory(
+//			@PathVariable String subCategoryId,
+//			@RequestParam(defaultValue = "0") int page,
+//			@RequestParam(defaultValue = "10") int limit,
+//			@RequestParam(defaultValue = "productName") String sortField,
+//			@RequestParam(defaultValue = "asc") String sortOrder) {
+//
+//		PagedResponseDTO<ProductResponseDTO> pagedResponseDTO = productService.getProductsBySubCategory(subCategoryId,
+//				page, limit, sortField, sortOrder);
+//		ApiResponseDTO<PagedResponseDTO<ProductResponseDTO>> apiResponseDTO = new ApiResponseDTO<>(
+//				"Get all product success", HttpStatus.OK.value(), pagedResponseDTO);
+//		return ResponseEntity.status(HttpStatus.OK).body(apiResponseDTO);
+//	}
 	@GetMapping("/subcategory/{subCategoryId}")
 	public ResponseEntity<?> getProductsBySubCategory(
-			@PathVariable String subCategoryId,
-			@RequestParam(defaultValue = "0") int page,
-			@RequestParam(defaultValue = "10") int limit,
-			@RequestParam(defaultValue = "productName") String sortField,
-			@RequestParam(defaultValue = "asc") String sortOrder) {
-
-		PagedResponseDTO<ProductResponseDTO> pagedResponseDTO = productService.getProductsBySubCategory(subCategoryId,
-				page, limit, sortField, sortOrder);
-		ApiResponseDTO<PagedResponseDTO<ProductResponseDTO>> apiResponseDTO = new ApiResponseDTO<>(
-				"Get all product success", HttpStatus.OK.value(), pagedResponseDTO);
-		return ResponseEntity.status(HttpStatus.OK).body(apiResponseDTO);
+	        @PathVariable String subCategoryId,
+	        @RequestParam(defaultValue = "0") int page,
+	        @RequestParam(defaultValue = "10") int limit,
+	        @RequestParam(defaultValue = "productName_asc") String sortBy
+	) {
+	    var result = productService.getProductsBySubCategory(subCategoryId, page, limit, sortBy);
+	    return ResponseEntity.ok(new ApiResponseDTO<>("Success", 200, result));
 	}
+
 
 	@GetMapping
 	public ResponseEntity<?> getAllProduct(@RequestParam(defaultValue = "0") int page,
@@ -197,7 +208,6 @@ public class ProductController {
 		return ResponseEntity.status(HttpStatus.OK).body(apiResponseDTO);
 	}
 
-	//tạm thời chưa dùng
 
 	@GetMapping("/searchByPrice")
 	public ResponseEntity<?> getProductsByPriceRange(@RequestParam double minPrice,

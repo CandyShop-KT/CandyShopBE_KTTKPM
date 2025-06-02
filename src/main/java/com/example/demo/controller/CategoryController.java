@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.dto.ApiResponseDTO;
@@ -26,6 +27,7 @@ import com.example.demo.dto.CategoryRequestDTO;
 import com.example.demo.model.Category;
 import com.example.demo.model.SubCategory;
 import com.example.demo.service.CategoryService;
+import com.example.demo.service.SubCategoryService;
 
 import jakarta.validation.Valid;
 
@@ -35,9 +37,11 @@ public class CategoryController {
 
 	private static final Logger logger = LoggerFactory.getLogger(CategoryController.class);
 	private CategoryService categoryService;
+	private SubCategoryService subCategoryService;
 
-	public CategoryController(CategoryService categoryService) {
+	public CategoryController(CategoryService categoryService, SubCategoryService subCategoryService) {
 		this.categoryService = categoryService;
+		this.subCategoryService = subCategoryService;
 	}
 
 	@GetMapping
@@ -58,10 +62,9 @@ public class CategoryController {
 
 	@GetMapping("/{categoryId}/subcategories")
 	public ResponseEntity<?> getSubcategoriesByCategoryId(@PathVariable String categoryId) {
-		Category category = categoryService.getCategory(categoryId);
-		List<SubCategory> categories = category.getSubCategories();
+		List<SubCategory> subCategories = subCategoryService.getSubCategoriesByCategoryId(categoryId);
 		ApiResponseDTO<List<SubCategory>> response = new ApiResponseDTO<>("SubCategories retrieved successfully",
-				HttpStatus.OK.value(), categories);
+				HttpStatus.OK.value(), subCategories);
 		return ResponseEntity.status(HttpStatus.OK).body(response);
 	}
 
@@ -112,4 +115,19 @@ public class CategoryController {
 		return ResponseEntity.status(HttpStatus.OK).body(response);
 	}
 
+	@GetMapping("/search")
+	public ResponseEntity<?> searchCategories(@RequestParam String keyword) {
+		List<Category> categories = categoryService.searchCategories(keyword);
+		ApiResponseDTO<List<Category>> response = new ApiResponseDTO<>("Categories search results",
+				HttpStatus.OK.value(), categories);
+		return ResponseEntity.status(HttpStatus.OK).body(response);
+	}
+
+	@GetMapping("/search-by-subcategory")
+	public ResponseEntity<?> searchCategoriesBySubCategoryName(@RequestParam String keyword) {
+		List<Category> categories = categoryService.searchCategoriesBySubCategoryName(keyword);
+		ApiResponseDTO<List<Category>> response = new ApiResponseDTO<>("Categories search results by subcategory name",
+				HttpStatus.OK.value(), categories);
+		return ResponseEntity.status(HttpStatus.OK).body(response);
+	}
 }

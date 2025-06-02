@@ -1,6 +1,7 @@
 package com.example.demo.service.imp;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,10 +16,10 @@ import com.example.demo.service.SubCategoryService;
 
 @Repository
 public class SubCategoryServiceImp implements SubCategoryService {
-	
+
 	private CategoryRepository categoryRepository;
 	private SubCategoryRepository subCategoryRepository;
-	
+
 	public SubCategoryServiceImp(CategoryRepository categoryRepository, SubCategoryRepository subCategoryRepository) {
 		this.categoryRepository = categoryRepository;
 		this.subCategoryRepository = subCategoryRepository;
@@ -29,7 +30,7 @@ public class SubCategoryServiceImp implements SubCategoryService {
 	public SubCategory createSubCategory(String categoryId, SubCategoryRequestDTO subCategoryRequestDTO) {
 		Category category = categoryRepository.findById(categoryId)
 				.orElseThrow(() -> new ResourceNotFoundException("Category not found"));
-		if (subCategoryRepository.existsBySubCategoryNameIgnoreCase(subCategoryRequestDTO.getSubCategoryName())) 
+		if (subCategoryRepository.existsBySubCategoryNameIgnoreCase(subCategoryRequestDTO.getSubCategoryName()))
 			throw new RuntimeException("Sub Category name already exists");
 		SubCategory subCategory = new SubCategory();
 		subCategory.setSubCategoryName(subCategoryRequestDTO.getSubCategoryName());
@@ -40,31 +41,57 @@ public class SubCategoryServiceImp implements SubCategoryService {
 	@Override
 	@Transactional
 	public SubCategory updateSubCategory(String subCategoryId, SubCategoryRequestDTO subCategoryRequestDTO) {
-		SubCategory subCategory = subCategoryRepository.findById(subCategoryId)
-				.orElseThrow(() -> new ResourceNotFoundException("Sub Category not found"));
-		if (subCategoryRepository.existsBySubCategoryNameIgnoreCase(subCategoryRequestDTO.getSubCategoryName()))
-			throw new RuntimeException("Sub Category name already exists");
-		subCategory.setSubCategoryName(subCategoryRequestDTO.getSubCategoryName());
-		return subCategoryRepository.save(subCategory);
+		SubCategory existingSubCategory = subCategoryRepository.findById(subCategoryId)
+				.orElseThrow(() -> new ResourceNotFoundException("SubCategory not found"));
+
+		// Kiểm tra nếu có thay đổi tên
+		if (!Objects.equals(existingSubCategory.getSubCategoryName().toLowerCase(),
+				subCategoryRequestDTO.getSubCategoryName().toLowerCase())) {
+			// Chỉ kiểm tra trùng tên khi có thay đổi tên
+			if (subCategoryRepository.existsBySubCategoryNameIgnoreCase(subCategoryRequestDTO.getSubCategoryName())) {
+				throw new RuntimeException("Sub Category name already exists");
+			}
+			existingSubCategory.setSubCategoryName(subCategoryRequestDTO.getSubCategoryName());
+		}
+
+		// Kiểm tra nếu có thay đổi danh mục cha
+		if (!Objects.equals(existingSubCategory.getCategory().getCategoryId(),
+				subCategoryRequestDTO.getCategoryId())) {
+			Category newCategory = categoryRepository.findById(subCategoryRequestDTO.getCategoryId())
+					.orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+			existingSubCategory.setCategory(newCategory);
+		}
+
+		return subCategoryRepository.save(existingSubCategory);
 	}
 
 	@Override
 	public SubCategory getSubCategory(String subCategoryId) {
 		return subCategoryRepository.findById(subCategoryId)
-				.orElseThrow(() -> new ResourceNotFoundException("Sub Category not found"));
+				.orElseThrow(() -> new ResourceNotFoundException("SubCategory not found"));
 	}
 
 	@Override
 	@Transactional
 	public void deleteSubCategory(String subCategoryId) {
 		SubCategory subCategory = subCategoryRepository.findById(subCategoryId)
-				.orElseThrow(() -> new ResourceNotFoundException("Sub Category not found"));
+				.orElseThrow(() -> new ResourceNotFoundException("SubCategory not found"));
 		subCategoryRepository.delete(subCategory);
 	}
 
 	@Override
 	public List<SubCategory> getAllSubCategories() {
 		return subCategoryRepository.findAll();
+	}
+
+	@Override
+	public List<SubCategory> searchSubCategories(String keyword) {
+		return subCategoryRepository.searchSubCategories(keyword);
+	}
+
+	@Override
+	public List<SubCategory> getSubCategoriesByCategoryId(String categoryId) {
+		return subCategoryRepository.findByCategoryId(categoryId);
 	}
 
 }

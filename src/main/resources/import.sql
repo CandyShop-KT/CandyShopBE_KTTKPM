@@ -1,4 +1,4 @@
-address-- --------------------------------------------------------
+
 -- Máy chủ:                      127.0.0.1
 -- Server version:               11.3.2-MariaDB - mariadb.org binary distribution
 -- Server OS:                    Win64

@@ -27,4 +27,7 @@ public class OrderPageResponseDTO {
 	private OrderStatus status;
 	private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
+	
+	private String userId;
+	private String username;
 }
